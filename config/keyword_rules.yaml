@@ -1,0 +1,40 @@
+# Rule-based pre-filter applied before spending LLM tokens.
+# All string matches are case-insensitive and substring-based.
+
+exclude_titles:
+  - "junior"
+  - "associate"
+  - "intern"
+  - "staff engineer"
+  - "entry level"
+  - "entry-level"
+
+exclude_domains:
+  - "marketing"
+  - "sales"
+  - "recruiter"
+  - "recruiting"
+  - "human resources"
+  - "accounts payable"
+  - "accounts receivable"
+
+require_any:
+  - "research"
+  - "scientist"
+  - "r&d"
+  - "principal"
+  - "director"
+  - "applied science"
+  - "mathematician"
+  - "quantitative"
+  - "autonomy"
+  - "robotics"
+  - "machine learning"
+  - "artificial intelligence"
+  - "geospatial"
+  - "defense"
+  - "intelligence"
+
+# Minimum LLM score to include a role in the digest.
+# If no roles meet this threshold, the top 3 are included anyway (flagged).
+llm_score_threshold: 6

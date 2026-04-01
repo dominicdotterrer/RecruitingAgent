@@ -4,3 +4,20 @@
 
 # LangGraph
 .langgraph_api/
+
+# Environment — never commit secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# Editors
+.vscode/
+.idea/
+*.swp

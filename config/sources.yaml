@@ -1,0 +1,51 @@
+job_boards:
+  - url: https://www.mathjobs.org/jobs
+    type: job_board
+    scraper: mathjobs
+
+  - url: https://www.indeed.com
+    type: job_board
+    scraper: indeed
+
+  - url: https://jobs.usa.gov
+    type: job_board
+    scraper: usajobs
+
+company_careers:
+  - company: Anduril Industries
+    url: https://www.anduril.com/open-roles/
+    type: careers_page
+
+  - company: Shield AI
+    url: https://shield.ai/careers/
+    type: careers_page
+
+  - company: Palantir
+    url: https://www.palantir.com/careers/
+    type: careers_page
+
+  - company: Jane Street
+    url: https://www.janestreet.com/join-jane-street/open-roles/
+    type: careers_page
+
+  - company: Two Sigma
+    url: https://careers.twosigma.com
+    type: careers_page
+
+  - company: MITRE
+    url: https://careers.mitre.org
+    type: careers_page
+
+vc_portfolios:
+  - name: Lux Capital
+    portfolio_url: https://luxcapital.com/companies
+    type: vc_portfolio
+
+  - name: In-Q-Tel
+    portfolio_url: https://www.iqt.org/portfolio/
+    type: vc_portfolio
+
+  - name: a16z Defense
+    portfolio_url: https://a16z.com/portfolio/
+    type: vc_portfolio
+    filter: defense

@@ -1,0 +1,37 @@
+name: Weekly Source Discovery
+
+on:
+  schedule:
+    - cron: '0 4 * * 0'    # Sunday midnight ET (4 AM UTC)
+  workflow_dispatch:        # manual trigger for testing
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Need push access for the sources.yaml commit
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git identity
+        run: |
+          git config user.name  "job-search-agent[bot]"
+          git config user.email "job-search-agent[bot]@users.noreply.github.com"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run weekly discovery
+        env:
+          ANTHROPIC_API_KEY:    ${{ secrets.ANTHROPIC_API_KEY }}
+          BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          DATABASE_URL:         ${{ secrets.DATABASE_URL }}
+        run: python -m agent.run_discovery
