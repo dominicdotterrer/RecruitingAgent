@@ -1,9 +1,7 @@
 name: Weekly Source Discovery
 
 on:
-  schedule:
-    - cron: '0 4 * * 0'    # Sunday midnight ET (4 AM UTC)
-  workflow_dispatch:        # manual trigger for testing
+  workflow_dispatch:        # manual trigger only — re-enable schedule once stable
 
 jobs:
   discover:
