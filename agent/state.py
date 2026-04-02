@@ -30,6 +30,7 @@ class DailyState(TypedDict):
     new_jobs: list[JobPosting]       # after deduplication
     filtered_jobs: list[JobPosting]  # after keyword filter
     scored_jobs: list[ScoredJob]     # after LLM ranker (score >= threshold, or top-3 fallback)
+    expansion_note: str              # set by expand_sources_if_thin; empty string if not triggered
     digest_html: str
     email_sent: bool
 

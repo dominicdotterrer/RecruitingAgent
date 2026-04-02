@@ -17,6 +17,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+import re
+
 import anthropic
 import httpx
 import yaml
@@ -61,13 +63,21 @@ def _job_id(company: str, title: str, url: str) -> str:
 
 
 def _parse_json_response(text: str) -> list[dict]:
-    """Strip markdown fences then parse JSON."""
+    """Extract and parse the first JSON array from an LLM response.
+
+    Handles markdown fences, trailing explanation text, and extra newlines
+    that cause json.loads to raise 'Extra data'.
+    """
     text = text.strip()
-    if text.startswith("```"):
-        lines = text.split("\n")
-        # Drop opening fence (and optional language tag) and closing fence
-        text = "\n".join(lines[1:-1] if lines[-1].strip() == "```" else lines[1:])
-    return json.loads(text.strip())
+    # Unwrap markdown code fence if present
+    fence_match = re.search(r"```(?:\w+)?\n([\s\S]*?)```", text)
+    if fence_match:
+        text = fence_match.group(1).strip()
+    # Extract the first [...] block, including nested structures
+    arr_match = re.search(r"\[[\s\S]*\]", text)
+    if arr_match:
+        text = arr_match.group(0)
+    return json.loads(text)
 
 
 async def _extract_jobs_llm(markdown: str, source_name: str, source_url: str) -> list[JobPosting]:
@@ -99,7 +109,8 @@ Return ONLY the JSON array. If no jobs are found, return []."""
     try:
         jobs_data = _parse_json_response(msg.content[0].text)
     except (json.JSONDecodeError, IndexError) as e:
-        print(f"LLM extraction parse error for {source_url}: {e}")
+        raw = msg.content[0].text[:400] if msg.content else "(empty)"
+        print(f"LLM extraction parse error for {source_url}: {e}\n  Raw response: {raw!r}")
         return []
 
     now = datetime.now(timezone.utc).isoformat()
@@ -215,7 +226,8 @@ Return ONLY the JSON array."""
     try:
         companies = _parse_json_response(msg.content[0].text)
     except (json.JSONDecodeError, IndexError) as e:
-        print(f"Portfolio extraction failed for {portfolio_url}: {e}")
+        raw = msg.content[0].text[:400] if msg.content else "(empty)"
+        print(f"Portfolio extraction failed for {portfolio_url}: {e}\n  Raw response: {raw!r}")
         return []
 
     # Step 2: scrape each company's careers page
@@ -266,8 +278,10 @@ async def _scrape_source_safe(source: dict) -> list[JobPosting]:
             return await _scrape_vc_portfolio(source)
         return []
     except Exception as e:
+        import traceback
         label = source.get("url") or source.get("portfolio_url") or "unknown"
-        print(f"Scraper error [{label}]: {e}")
+        print(f"Scraper error [{label}]: {type(e).__name__}: {e}")
+        print(traceback.format_exc())
         return []
 
 

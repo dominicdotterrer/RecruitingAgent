@@ -1,12 +1,20 @@
 from langgraph.graph import StateGraph, END
 
 from agent.state import DailyState, DiscoveryState
+
+
+def _route_after_ranker(state: DailyState) -> str:
+    """Go to expand_sources if nothing cleared the threshold; else compose directly."""
+    scored = state.get("scored_jobs", [])
+    above = [s for s in scored if "BELOW THRESHOLD" not in s.rationale]
+    return "expand_sources" if not above else "compose_digest"
 from agent.nodes.scraper import load_sources, scrape_sources
 from agent.nodes.deduplicator import deduplicate, persist_seen
 from agent.nodes.keyword_filter import keyword_filter
 from agent.nodes.llm_ranker import llm_ranker
 from agent.nodes.digest_composer import compose_digest
 from agent.nodes.site_discoverer import (
+    expand_sources_if_thin,
     load_config,
     generate_queries,
     run_serp,
@@ -24,6 +32,7 @@ def build_daily_graph():
     g.add_node("deduplicate", deduplicate)
     g.add_node("keyword_filter", keyword_filter)
     g.add_node("llm_ranker", llm_ranker)
+    g.add_node("expand_sources", expand_sources_if_thin)
     g.add_node("compose_digest", compose_digest)
     g.add_node("send_email", send_email_node)
     g.add_node("persist_seen", persist_seen)
@@ -33,7 +42,12 @@ def build_daily_graph():
     g.add_edge("scrape_sources", "deduplicate")
     g.add_edge("deduplicate", "keyword_filter")
     g.add_edge("keyword_filter", "llm_ranker")
-    g.add_edge("llm_ranker", "compose_digest")
+    g.add_conditional_edges(
+        "llm_ranker",
+        _route_after_ranker,
+        {"expand_sources": "expand_sources", "compose_digest": "compose_digest"},
+    )
+    g.add_edge("expand_sources", "compose_digest")
     g.add_edge("compose_digest", "send_email")
     g.add_edge("send_email", "persist_seen")
     g.add_edge("persist_seen", END)

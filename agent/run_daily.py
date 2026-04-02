@@ -14,6 +14,7 @@ if __name__ == "__main__":
             "new_jobs": [],
             "filtered_jobs": [],
             "scored_jobs": [],
+            "expansion_note": "",
             "digest_html": "",
             "email_sent": False,
         }

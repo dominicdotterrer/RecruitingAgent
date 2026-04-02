@@ -82,6 +82,12 @@ _HTML = """\
     border-top: 1px solid #eee;
     padding-top: 14px;
   }}
+  .expansion-note {{
+    margin-top: 8px;
+    font-size: 11px;
+    color: #888;
+    font-style: italic;
+  }}
   .empty {{
     font-size: 14px;
     color: #888;
@@ -96,6 +102,7 @@ _HTML = """\
   {scanned} roles scanned &nbsp;&middot;&nbsp;
   {filtered} passed keyword filter &nbsp;&middot;&nbsp;
   {included} included in digest
+  {expansion_block}
 </div>
 </body>
 </html>"""
@@ -130,6 +137,7 @@ def compose_digest(state: DailyState) -> dict:
     scored = state.get("scored_jobs", [])
     raw_count = len(state.get("raw_jobs", []))
     filtered_count = len(state.get("filtered_jobs", []))
+    expansion_note = state.get("expansion_note", "")
 
     strong = [s for s in scored if s.score >= 8 and "BELOW THRESHOLD" not in s.rationale]
     good = [s for s in scored if 6 <= s.score < 8 and "BELOW THRESHOLD" not in s.rationale]
@@ -144,11 +152,18 @@ def compose_digest(state: DailyState) -> dict:
     else:
         body = '<p class="empty">No new roles found today.</p>'
 
+    expansion_block = (
+        f'<div class="expansion-note">Search broadened: {expansion_note}</div>'
+        if expansion_note
+        else ""
+    )
+
     html = _HTML.format(
         date=date.today().strftime("%B %d, %Y"),
         body=body,
         scanned=raw_count,
         filtered=filtered_count,
         included=len(scored),
+        expansion_block=expansion_block,
     )
     return {"digest_html": html}
