@@ -127,6 +127,9 @@ def _write_and_commit_sources(approved: list[dict], commit_msg: str) -> None:
     with open(sources_path, "w") as f:
         yaml.dump(sources, f, allow_unicode=True, sort_keys=False, default_flow_style=False)
 
+    # Ensure git identity is set regardless of workflow environment
+    subprocess.run(["git", "config", "user.name", "job-search-agent[bot]"], check=True)
+    subprocess.run(["git", "config", "user.email", "job-search-agent[bot]@users.noreply.github.com"], check=True)
     subprocess.run(["git", "add", str(sources_path)], check=True)
     subprocess.run(["git", "commit", "-m", commit_msg], check=True)
     subprocess.run(["git", "push"], check=True)

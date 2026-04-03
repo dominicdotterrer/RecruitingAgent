@@ -29,6 +29,12 @@ def send_digest_email(html: str) -> None:
 def send_email_node(state: dict) -> dict:
     """LangGraph node: sends the composed digest and updates state."""
     html = state.get("digest_html", "")
-    if html:
+    if not html:
+        return {"email_sent": False}
+    try:
         send_digest_email(html)
-    return {"email_sent": bool(html)}
+        print("Email sent successfully.")
+        return {"email_sent": True}
+    except Exception as e:
+        print(f"EMAIL FAILED — pipeline will still complete. Error: {type(e).__name__}: {e}")
+        return {"email_sent": False}
